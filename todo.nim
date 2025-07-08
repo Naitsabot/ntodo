@@ -1,4 +1,4 @@
-import std/[times, os, sequtils, options, tables]
+import std/[times, options, tables]
 import naitsalib
 
 type
@@ -10,11 +10,11 @@ type
         startDate: Option[DateTime] # mutable optional datetime
         completionDate: Option[DateTime]
 
-    TaskManager = ref object of RootObj
+    TaskManager* = ref object of RootObj
         tasks: OrderedTable[int, Task]
         nextId: int
 
-proc newTaskManager(): TaskManager =
+proc newTaskManager*(): TaskManager =
     TaskManager(
         tasks: initOrderedTable[int, Task](),
         nextId: 1
@@ -37,7 +37,7 @@ proc view(task: Task) =
     else:
         print("Completed:.. Not completed")
 
-method add(tm: var TaskManager, name: string, description: string) {.base.} =
+method add*(tm: var TaskManager, name: string, description: string) {.base.} =
     let task: Task = Task(
         id: tm.nextId,
         name: name,
@@ -49,81 +49,43 @@ method add(tm: var TaskManager, name: string, description: string) {.base.} =
     tm.tasks[tm.nextId] = task
     tm.nextId += 1 # increment ids
 
-method viewAll(tm: TaskManager) {.base.} =
+method viewAll*(tm: TaskManager) {.base.} =
     for id, task in tm.tasks.pairs:
         task.view()
         echo "\n"
 
-method viewTask(tm: TaskManager, id: int) {.base.} =
+method viewTask*(tm: TaskManager, id: int) {.base.} =
     if id in tm.tasks:
         tm.tasks[id].view()
 
-method getTask(tm: TaskManager, id: int): Option[Task] {.base.} =
+method getTask*(tm: TaskManager, id: int): Option[Task] {.base.} =
     if id in tm.tasks:
         return some(tm.tasks[id])
     else:
         return none(Task)
 
-method startTask(tm: TaskManager, id: int): bool {.base.} =
+method startTask*(tm: TaskManager, id: int): bool {.base.} =
     if id in tm.tasks:
         tm.tasks[id].startDate = some(now())
         return true
     return false
 
-method completeTask(tm: TaskManager, id: int): bool {.base.} =
+method completeTask*(tm: TaskManager, id: int): bool {.base.} =
     if id in tm.tasks:
         tm.tasks[id].completionDate = some(now())
         return true
     return false
 
-method removeTask(tm: TaskManager, id: int): bool {.base.} =
+method removeTask*(tm: TaskManager, id: int): bool {.base.} =
     if id in tm.tasks:
         tm.tasks.del(id)
         return true
     return false
 
-method saveTasks(tm: TaskManager, path: string) {.base.} = 
+method saveTasks*(tm: TaskManager, path: string) {.base.} = 
     # TODO
     discard
 
-method loadTasks(tm: var TaskManager, path: string) {.base.} = 
+method loadTasks*(tm: var TaskManager, path: string) {.base.} = 
     # TODO
     discard
-
-
-var taskManager = newTaskManager()
-
-taskManager.add("Ring til Karoline", "Sig at hun er det pureste marmor")
-taskManager.add("Buy groceries", "Milk, bread, eggs")
-
-echo "View a task, with ID 1:"
-taskManager.viewTask(1)
-echo ""
-
-echo "All tasks:"
-taskManager.viewAll()
-
-
-echo "Starting task with ID 1:"
-if taskManager.startTask(1):
-    echo "Task started successfully"
-else:
-    echo "Task not found"
-
-echo "Completing task with ID 2:"
-if taskManager.completeTask(2):
-    echo "Task completed successfully"
-else:
-    echo "Task not found"
-
-echo "\nAll tasks after modifications:"
-taskManager.viewAll()
-
-echo "Removing task with ID 1:"
-if taskManager.removeTask(1):
-    echo "Task removed successfully"
-else:
-    echo "Task not found"
-
-echo "\nRemaining tasks:"
-taskManager.viewAll()
