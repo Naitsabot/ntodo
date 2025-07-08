@@ -9,6 +9,7 @@ type
         creationDate: DateTime
         startDate: Option[DateTime] # mutable optional datetime
         completionDate: Option[DateTime]
+        lastModifiedDate: DateTime
 
     TaskManager* = ref object of RootObj
         tasks: OrderedTable[int, Task]
@@ -45,6 +46,7 @@ method add*(tm: var TaskManager, name: string, description: string) {.base.} =
         creationDate: now(),
         startDate: none(DateTime),
         completionDate: none(DateTime)
+        lastModifiedDate: now()
     )
     tm.tasks[tm.nextId] = task
     tm.nextId += 1 # increment ids
@@ -64,15 +66,31 @@ method getTask*(tm: TaskManager, id: int): Option[Task] {.base.} =
     else:
         return none(Task)
 
+method modName*(tm: TaskManager, id: int, name: string): bool {.base.} =
+    if id in tm.tasks:
+        tm.tasks[id].name = name
+        tm.tasks[id].lastModifiedDate = now()
+        return true
+    return false
+
+method modDescription*(tm: TaskManager, id: int, description: string): bool {.base.} =
+    if id in tm.tasks:
+        tm.tasks[id].description = description
+        tm.tasks[id].lastModifiedDate = now()
+        return true
+    return false
+
 method startTask*(tm: TaskManager, id: int): bool {.base.} =
     if id in tm.tasks:
         tm.tasks[id].startDate = some(now())
+        tm.tasks[id].lastModifiedDate = now()
         return true
     return false
 
 method completeTask*(tm: TaskManager, id: int): bool {.base.} =
     if id in tm.tasks:
         tm.tasks[id].completionDate = some(now())
+        tm.tasks[id].lastModifiedDate = now()
         return true
     return false
 
